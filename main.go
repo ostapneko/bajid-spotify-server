@@ -13,7 +13,9 @@ import (
 func main() {
 	fmt.Println("Starting Bajid server!")
 
-	sm, err := gcp.NewSecretManager()
+	gcpProjectId := config.RequireEnvVar("GCP_PROJECT_ID")
+
+	sm, err := gcp.NewSecretManager(gcpProjectId)
 
 	if err != nil {
 		log.Fatalln(err)
@@ -41,7 +43,7 @@ func main() {
 	log.Fatal(err)
 }
 
-func handler(w http.ResponseWriter, _ *http.Request) {
-	log.Println("received a request")
-	_, _ = fmt.Fprint(w, "OK")
+func handler(w http.ResponseWriter, r *http.Request) {
+	log.Print("received a request")
+	_, _ = fmt.Fprintf(w, "OK")
 }

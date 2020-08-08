@@ -14,7 +14,7 @@ type SecretManager struct {
 	client *secretmanager.Client
 }
 
-func NewSecretManager() (*SecretManager, error) {
+func NewSecretManager(gcpProjectId string) (*SecretManager, error) {
 	log.Println("instantiating secrets manager")
 
 	ctx := context.Background()
