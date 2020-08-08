@@ -29,7 +29,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	http.HandleFunc("/", handler)
+	http.Handle("/", http.FileServer(http.Dir("./public")))
 
 	port := config.RequireEnvVar("PORT")
 	if port == "" {
@@ -41,9 +41,4 @@ func main() {
 	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 
 	log.Fatal(err)
-}
-
-func handler(w http.ResponseWriter, _ *http.Request) {
-	log.Println("received a request")
-	_, _ = fmt.Fprintf(w, "OK")
 }
