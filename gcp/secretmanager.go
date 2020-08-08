@@ -47,7 +47,7 @@ func (s *SecretManager) GetSecret(ctx context.Context, key string) (string, erro
 			obfuscated.WriteByte('*')
 		}
 	}
-	log.Printf("secret %s: %s\n", key, obfuscated)
+	log.Printf("secret %s: %s\n", key, obfuscated.String())
 
 	return secretValue, nil
 }
