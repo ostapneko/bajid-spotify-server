@@ -3,11 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"net/http"
-
 	"franquel.in/bajidspotifyserver/config"
 	"franquel.in/bajidspotifyserver/gcp"
+	"log"
+	"net/http"
 )
 
 func main() {
@@ -39,6 +38,7 @@ func main() {
 	log.Printf("Bajid listening on port %s", port)
 
 	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
+
 
 	log.Fatal(err)
 }
