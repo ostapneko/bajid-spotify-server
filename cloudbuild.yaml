@@ -10,10 +10,23 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/bajidspotifyserver:SHORT_SHA'
+      - 'gcr.io/$PROJECT_ID/bajidspotifyserver:$SHORT_SHA'
       - '.'
   - name: 'gcr.io/cloud-builders/docker'
     id: Push
     args:
       - 'push'
-      - 'gcr.io/$PROJECT_ID/bajidspotifyserver:SHORT_SHA'
+      - 'gcr.io/$PROJECT_ID/bajidspotifyserver:$SHORT_SHA'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: Deploy
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'bajidspotifyserver'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/bajidspotifyserver:$SHORT_SHA'
+      - '--region'
+      - 'europe-west1'
+      - '--platform'
+      - 'managed'

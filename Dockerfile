@@ -21,5 +21,6 @@ RUN apk add --no-cache ca-certificates
 # Copy the binary to the production image from the builder stage.
 COPY --from=builder /app/bajidspotifyserver /bajidspotifyserver
 
+ENV PORT=8080
 # Run the web service on container startup.
 CMD ["/bajidspotifyserver"]
