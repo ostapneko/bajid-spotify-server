@@ -11,7 +11,8 @@ import (
 )
 
 type SecretManager struct {
-	client *secretmanager.Client
+	client    *secretmanager.Client
+	projectId string
 }
 
 func NewSecretManager(gcpProjectId string) (*SecretManager, error) {
@@ -24,11 +25,12 @@ func NewSecretManager(gcpProjectId string) (*SecretManager, error) {
 		return nil, fmt.Errorf("failed to setup secrets manager client: %s", err)
 	}
 
-	return &SecretManager{client: client}, nil
+	return &SecretManager{client: client, projectId: gcpProjectId}, nil
 }
 
 func (s *SecretManager) GetSecret(ctx context.Context, key string) (string, error) {
-	req := &secretmanagerpb.GetSecretRequest{Name: key}
+	name := fmt.Sprintf("projects/%s/secrets/%s", s.projectId, key)
+	req := &secretmanagerpb.GetSecretRequest{Name: name}
 	secret, err := s.client.GetSecret(ctx, req)
 	if err != nil {
 		return "", fmt.Errorf("error accessing secret with key %s: %s", key, err)
