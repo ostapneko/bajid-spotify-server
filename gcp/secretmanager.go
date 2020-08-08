@@ -29,13 +29,26 @@ func NewSecretManager(gcpProjectId string) (*SecretManager, error) {
 }
 
 func (s *SecretManager) GetSecret(ctx context.Context, key string) (string, error) {
-	name := fmt.Sprintf("projects/%s/secrets/%s", s.projectId, key)
-	req := &secretmanagerpb.GetSecretRequest{Name: name}
-	secret, err := s.client.GetSecret(ctx, req)
+	name := fmt.Sprintf("projects/%s/secrets/%s/versions/latest", s.projectId, key)
+	versionReq := &secretmanagerpb.GetSecretVersionRequest{
+		Name: name,
+	}
+	_, err := s.client.GetSecretVersion(ctx, versionReq)
+
+	if err != nil {
+		return "", fmt.Errorf("error accessing secret version with key %s: %s", key, err)
+	}
+
+	name = fmt.Sprintf("projects/%s/secrets/%s/versions/1", s.projectId, key)
+	secretReq := &secretmanagerpb.AccessSecretVersionRequest{Name: name}
+
+	secret, err := s.client.AccessSecretVersion(ctx, secretReq)
+
 	if err != nil {
 		return "", fmt.Errorf("error accessing secret with key %s: %s", key, err)
 	}
-	secretValue := secret.String()
+
+	secretValue := string(secret.Payload.Data)
 	if secretValue == "" {
 		return "", fmt.Errorf("empty value for secret with key %s", key)
 	}
