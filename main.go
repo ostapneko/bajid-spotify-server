@@ -1,15 +1,31 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 
 	"franquel.in/bajidspotifyserver/config"
+	"franquel.in/bajidspotifyserver/gcp"
 )
 
 func main() {
 	fmt.Println("Starting Bajid server!")
+
+	sm, err := gcp.NewSecretManager()
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	ctx := context.Background()
+
+	_, err = sm.GetSecret(ctx, "SPOTIFY_CLIENT_SECRET")
+
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	http.HandleFunc("/", handler)
 
@@ -20,12 +36,12 @@ func main() {
 
 	log.Printf("Bajid listening on port %s", port)
 
-	err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
+	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 
 	log.Fatal(err)
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	log.Print("received a request")
-	_, _ = fmt.Fprintf(w, "OK")
+func handler(w http.ResponseWriter, _ *http.Request) {
+	log.Println("received a request")
+	_, _ = fmt.Fprint(w, "OK")
 }
