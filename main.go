@@ -44,6 +44,6 @@ func main() {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	log.Print("received a request")
+	log.Println("received a request")
 	_, _ = fmt.Fprintf(w, "OK")
 }
