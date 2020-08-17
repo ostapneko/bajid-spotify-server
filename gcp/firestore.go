@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+
+	"franquel.in/bajidspotifyserver/bajid"
 )
 
 type Firestore struct {
@@ -35,11 +37,11 @@ Collection: Songs
 		- Z: spotify-song-url-z
 */
 
-func (f *Firestore) GetDocumentRef(userId string) *firestore.DocumentRef {
-	return f.client.Collection("songs").Doc(userId)
+func (f *Firestore) GetDocumentRef(userId bajid.UserId) *firestore.DocumentRef {
+	return f.client.Collection("songs").Doc(string(userId))
 }
 
-func (f *Firestore) ReadDocument(userId string) (map[string]string, error) {
+func (f *Firestore) ReadDocument(userId bajid.UserId) (bajid.LetterToSong, error) {
 	doc := f.GetDocumentRef(userId)
 	docSnapshot, err := doc.Get(f.ctx)
 	if err != nil {
@@ -47,18 +49,16 @@ func (f *Firestore) ReadDocument(userId string) (map[string]string, error) {
 	}
 	dataMap := docSnapshot.Data()
 
-	mapString := make(map[string]string)
+	res := make(bajid.LetterToSong, len(dataMap))
 
 	for key, value := range dataMap {
-		strKey := fmt.Sprintf("%v", key)
-		strValue := fmt.Sprintf("%v", value)
-
-		mapString[strKey] = strValue
+		res[bajid.Letter(key)] = value.(bajid.SpotifyURI)
 	}
-	return mapString, nil
+
+	return res, nil
 }
 
-func (f *Firestore) WriteDocument(userId string, songList map[string]string) (*firestore.WriteResult, error) {
+func (f *Firestore) WriteDocument(userId bajid.UserId, songList bajid.LetterToSong) (*firestore.WriteResult, error) {
 	doc := f.GetDocumentRef(userId)
 	ctx, cancel := context.WithTimeout(f.ctx, 2*time.Second)
 	defer cancel()
