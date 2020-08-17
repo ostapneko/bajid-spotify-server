@@ -15,6 +15,9 @@ import (
 )
 
 const cookieExpiration = 7 * 24 * time.Hour // 1 week
+const bajidSpotifyTokenKey = "bajid-spotify-token"
+const playerPath = "/player"
+const loginPath = "/login"
 
 func main() {
 	fmt.Println("Starting Bajid server!")
@@ -39,9 +42,20 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	http.Handle("/", http.FileServer(http.Dir("./public")))
+	http.HandleFunc(loginPath, func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "public/login.html")
+	})
+	http.HandleFunc(playerPath, func(w http.ResponseWriter, r *http.Request) {
+		if checkBajidSpotifyCookie(w, r) {
+			http.ServeFile(w, r, "public/player.html")
+		}
+	})
 	http.HandleFunc("/auth/spotify/login", handleOauthLogin(oauthConf))
 	http.HandleFunc("/auth/spotify/callback", handleOauthCallback(oauthConf))
+	http.Handle("/css/", http.FileServer(http.Dir("./public")))
+	http.Handle("/js/", http.FileServer(http.Dir("./public")))
+
+	http.HandleFunc("/", handleWelcome)
 
 	port := config.RequireEnvVar("PORT")
 
@@ -50,6 +64,17 @@ func main() {
 	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 
 	log.Fatal(err)
+}
+
+func handleWelcome(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+
+	if checkBajidSpotifyCookie(w, r) {
+		http.Redirect(w, r, playerPath, http.StatusTemporaryRedirect)
+	}
 }
 
 func handleOauthLogin(oauthConf *oauth2.Config) http.HandlerFunc {
@@ -68,7 +93,7 @@ func handleOauthCallback(oauthConf *oauth2.Config) http.HandlerFunc {
 
 		if r.FormValue("state") != oauthState.Value {
 			log.Println("invalid oauth google state")
-			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+			http.Redirect(w, r, loginPath, http.StatusTemporaryRedirect)
 			return
 		}
 
@@ -86,13 +111,26 @@ func handleOauthCallback(oauthConf *oauth2.Config) http.HandlerFunc {
 		expiration := time.Now().Add(cookieExpiration)
 
 		cookie := &http.Cookie{
-			Name:    "bajid-spotify-token",
+			Name:    bajidSpotifyTokenKey,
 			Value:   token.AccessToken,
 			Expires: expiration,
+			Path:    "/",
 		}
 
 		http.SetCookie(w, cookie)
 
-		w.Write([]byte("OK"))
+		http.Redirect(w, r, playerPath, http.StatusTemporaryRedirect)
 	}
+}
+
+// checkBajidSpotifyCookie returns true if there is a valid bajidSpotifyToken and rediretcts
+func checkBajidSpotifyCookie(w http.ResponseWriter, r *http.Request) bool {
+	_, err := r.Cookie(bajidSpotifyTokenKey)
+
+	if err != nil {
+		http.Redirect(w, r, loginPath, http.StatusTemporaryRedirect)
+		return false
+	}
+
+	return true
 }
