@@ -26,23 +26,21 @@ func NewFireStore(gcpProjectId string) (*Firestore, error) {
 
 /*Data Model
 $userId: serverside-generated
-$listName: chosen by user
 
 Collection: Songs
-  - Document: $userid-$listName
+  - Document: $userid
 		- A: spotify-song-url-a
 		- B: spotify-song-url-b
 		...
 		- Z: spotify-song-url-z
 */
 
-func (f *Firestore) GetDocumentRef(userId string, listName string) *firestore.DocumentRef {
-	docID := fmt.Sprintf("%s-%s", userId, listName)
-	return f.client.Collection("songs").Doc(docID)
+func (f *Firestore) GetDocumentRef(userId string) *firestore.DocumentRef {
+	return f.client.Collection("songs").Doc(userId)
 }
 
-func (f *Firestore) ReadDocument(userId string, listName string) (map[string]string, error) {
-	doc := f.GetDocumentRef(userId, listName)
+func (f *Firestore) ReadDocument(userId string) (map[string]string, error) {
+	doc := f.GetDocumentRef(userId)
 	docSnapshot, err := doc.Get(f.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read doc: %s", err)
@@ -60,8 +58,8 @@ func (f *Firestore) ReadDocument(userId string, listName string) (map[string]str
 	return mapString, nil
 }
 
-func (f *Firestore) WriteDocument(userId string, listName string, songList map[string]string) (*firestore.WriteResult, error) {
-	doc := f.GetDocumentRef(userId, listName)
+func (f *Firestore) WriteDocument(userId string, songList map[string]string) (*firestore.WriteResult, error) {
+	doc := f.GetDocumentRef(userId)
 	ctx, cancel := context.WithTimeout(f.ctx, 2*time.Second)
 	defer cancel()
 	// Set either replaces an existing document or creates a new one
