@@ -13,7 +13,6 @@ import (
 type Firestore struct {
 	client    *firestore.Client
 	projectId string
-	ctx       context.Context
 }
 
 func NewFireStore(gcpProjectId string) (*Firestore, error) {
@@ -23,7 +22,7 @@ func NewFireStore(gcpProjectId string) (*Firestore, error) {
 		return nil, fmt.Errorf("failed to setup firestore client: %s", err)
 	}
 
-	return &Firestore{client: client, projectId: gcpProjectId, ctx: ctx}, nil
+	return &Firestore{client: client, projectId: gcpProjectId}, nil
 }
 
 /*Data Model
@@ -43,7 +42,9 @@ func (f *Firestore) GetDocumentRef(userId bajid.UserId) *firestore.DocumentRef {
 
 func (f *Firestore) ReadDocument(userId bajid.UserId) (bajid.LetterToSong, error) {
 	doc := f.GetDocumentRef(userId)
-	docSnapshot, err := doc.Get(f.ctx)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	docSnapshot, err := doc.Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read doc: %s", err)
 	}
@@ -60,7 +61,7 @@ func (f *Firestore) ReadDocument(userId bajid.UserId) (bajid.LetterToSong, error
 
 func (f *Firestore) WriteDocument(userId bajid.UserId, songList bajid.LetterToSong) (*firestore.WriteResult, error) {
 	doc := f.GetDocumentRef(userId)
-	ctx, cancel := context.WithTimeout(f.ctx, 2*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	// Set either replaces an existing document or creates a new one
 	writeResult, err := doc.Set(ctx, songList)
