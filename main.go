@@ -43,7 +43,7 @@ func main() {
 	log.Fatal(err)
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func handler(w http.ResponseWriter, _ *http.Request) {
 	log.Println("received a request")
 	_, _ = fmt.Fprintf(w, "OK")
 }
