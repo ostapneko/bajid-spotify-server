@@ -1,16 +1,17 @@
 package gcp
 
 import (
-	"cloud.google.com/go/firestore"
 	"context"
 	"fmt"
 	"time"
+
+	"cloud.google.com/go/firestore"
 )
 
 type Firestore struct {
-	client *firestore.Client
+	client    *firestore.Client
 	projectId string
-	ctx context.Context
+	ctx       context.Context
 }
 
 func NewFireStore(gcpProjectId string) (*Firestore, error) {
@@ -24,18 +25,18 @@ func NewFireStore(gcpProjectId string) (*Firestore, error) {
 }
 
 /*Data Model
-	$userId: serverside-generated
-	$listName: chosen by user
+$userId: serverside-generated
+$listName: chosen by user
 
-	Collection: Songs
-	  - Document: $userid-$listName
-			- A: spotify-song-url-a
-			- B: spotify-song-url-b
-			...
-			- Z: spotify-song-url-z
+Collection: Songs
+  - Document: $userid-$listName
+		- A: spotify-song-url-a
+		- B: spotify-song-url-b
+		...
+		- Z: spotify-song-url-z
 */
 
-func (f *Firestore) GetDocumentRef(userId string, listName string) (*firestore.DocumentRef) {
+func (f *Firestore) GetDocumentRef(userId string, listName string) *firestore.DocumentRef {
 	docID := fmt.Sprintf("%s-%s", userId, listName)
 	return f.client.Collection("songs").Doc(docID)
 }

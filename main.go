@@ -39,7 +39,6 @@ func main() {
 
 	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 
-
 	log.Fatal(err)
 }
 
