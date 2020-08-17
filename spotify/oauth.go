@@ -11,6 +11,7 @@ import (
 
 const authURL = "https://accounts.spotify.com/authorize"
 const tokenURL = "https://accounts.spotify.com/api/token"
+const cookieExpiration = 1 * 24 * time.Hour // 1 day
 
 func NewOauthConf(clientID string, clientSecret string, redirectURI string) *oauth2.Config {
 	return &oauth2.Config{
@@ -32,6 +33,6 @@ func GenState() string {
 }
 
 func MkCookie(state string) *http.Cookie {
-	expiration := time.Now().Add(365 * 24 * time.Hour)
+	expiration := time.Now().Add(cookieExpiration)
 	return &http.Cookie{Name: "oauthstate", Value: state, Expires: expiration}
 }

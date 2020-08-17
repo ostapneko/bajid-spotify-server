@@ -14,6 +14,8 @@ import (
 	"franquel.in/bajidspotifyserver/spotify"
 )
 
+const cookieExpiration = 7 * 24 * time.Hour // 1 week
+
 func main() {
 	fmt.Println("Starting Bajid server!")
 
@@ -42,9 +44,6 @@ func main() {
 	http.HandleFunc("/auth/spotify/callback", handleOauthCallback(oauthConf))
 
 	port := config.RequireEnvVar("PORT")
-	if port == "" {
-		port = "8080"
-	}
 
 	log.Printf("Bajid listening on port %s", port)
 
@@ -84,7 +83,7 @@ func handleOauthCallback(oauthConf *oauth2.Config) http.HandlerFunc {
 			return
 		}
 
-		expiration := time.Now().Add(365 * 24 * time.Hour)
+		expiration := time.Now().Add(cookieExpiration)
 
 		cookie := &http.Cookie{
 			Name:    "bajid-spotify-token",
