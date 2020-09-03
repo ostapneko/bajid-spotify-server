@@ -1,3 +1,7 @@
 'use strict';
 
-console.log('Welcome to the Bajid World!')
+import { initPlayer } from "./modules/spotify.js";
+
+(function() {
+    initPlayer();
+})()

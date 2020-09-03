@@ -42,17 +42,26 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "public/favicon.ico")
+	})
+
 	http.HandleFunc(loginPath, func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "public/login.html")
 	})
+
 	http.HandleFunc(playerPath, func(w http.ResponseWriter, r *http.Request) {
 		if checkBajidSpotifyCookie(w, r) {
 			http.ServeFile(w, r, "public/player.html")
 		}
 	})
+
 	http.HandleFunc("/auth/spotify/login", handleOauthLogin(oauthConf))
+
 	http.HandleFunc("/auth/spotify/callback", handleOauthCallback(oauthConf))
+
 	http.Handle("/css/", http.FileServer(http.Dir("./public")))
+
 	http.Handle("/js/", http.FileServer(http.Dir("./public")))
 
 	http.HandleFunc("/", handleWelcome)
