@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"franquel.in/bajidspotifyserver/bajid"
 )
@@ -36,38 +38,43 @@ Collection: Songs
 		- Z: spotify-song-url-z
 */
 
-func (f *Firestore) GetDocumentRef(userId bajid.UserId) *firestore.DocumentRef {
+func (f *Firestore) getDocumentRef(userId bajid.UserId) *firestore.DocumentRef {
 	return f.client.Collection("songs").Doc(string(userId))
 }
 
-func (f *Firestore) ReadDocument(userId bajid.UserId) (bajid.LetterToSong, error) {
-	doc := f.GetDocumentRef(userId)
+func (f *Firestore) Read(userId bajid.UserId) (bajid.SongList, error) {
+	doc := f.getDocumentRef(userId)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	docSnapshot, err := doc.Get(ctx)
 	if err != nil {
+		if status.Code(err) == codes.NotFound {
+			return make(bajid.SongList), nil
+		}
+
 		return nil, fmt.Errorf("failed to read doc: %s", err)
 	}
 	dataMap := docSnapshot.Data()
 
-	res := make(bajid.LetterToSong, len(dataMap))
+	res := make(bajid.SongList, len(dataMap))
 
 	for key, value := range dataMap {
-		res[bajid.Letter(key)] = value.(bajid.SpotifyURI)
+		res[bajid.Letter(key)] = bajid.SpotifyURI(value.(string))
 	}
 
 	return res, nil
 }
 
-func (f *Firestore) WriteDocument(userId bajid.UserId, songList bajid.LetterToSong) (*firestore.WriteResult, error) {
-	doc := f.GetDocumentRef(userId)
+func (f *Firestore) Write(userId bajid.UserId, songList bajid.SongList) error {
+	doc := f.getDocumentRef(userId)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	// Set either replaces an existing document or creates a new one
-	writeResult, err := doc.Set(ctx, songList)
+	_, err := doc.Set(ctx, songList)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to write doc: %s", err)
+		return fmt.Errorf("failed to write doc: %s", err)
 	}
-	return writeResult, nil
+
+	return nil
 }
