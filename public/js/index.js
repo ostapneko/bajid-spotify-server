@@ -31,10 +31,12 @@ function App({letterToTrack, player}) {
     });
 
     onkeypress = ({key}) => {
-        const letter = key;
-        console.log(letter);
-        const track = letterToTrack[letter];
-        setState({letter, track});
+        if (key.charCodeAt(0) > 96 && key.charCodeAt(0) < 123) {
+            const letter = key;
+            console.log(letter);
+            const track = letterToTrack[letter];
+            setState({letter, track});
+        }
     };
 
     React.useEffect(() => {
