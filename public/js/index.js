@@ -30,6 +30,18 @@ function App({letterToTrack, player}) {
         track: letterToTrack['a']
     });
 
+    player.addListener('player_state_changed', playerState => {
+        console.log('player state change', playerState)
+        let trackIsFinished = playerState.paused && (playerState.position > 0)
+
+        if (trackIsFinished) {
+            const randomCharCode = Math.floor(Math.random() * (123 - 97) + 97);
+            let letter = String.fromCharCode(randomCharCode);
+            const track = letterToTrack[letter];
+            setState({letter, track});
+        }
+    });
+
     onkeypress = ({key}) => {
         if (key.charCodeAt(0) > 96 && key.charCodeAt(0) < 123) {
             const letter = key;
