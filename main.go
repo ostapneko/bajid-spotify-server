@@ -2,13 +2,16 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/gorilla/mux"
 	"golang.org/x/oauth2"
 
+	"franquel.in/bajidspotifyserver/bajid"
 	"franquel.in/bajidspotifyserver/config"
 	"franquel.in/bajidspotifyserver/gcp"
 	"franquel.in/bajidspotifyserver/spotify"
@@ -21,6 +24,7 @@ const loginPath = "/login"
 
 func main() {
 	fmt.Println("Starting Bajid server!")
+	r := mux.NewRouter()
 
 	gcpProjectId := config.RequireEnvVar("GCP_PROJECT_ID")
 	spotifyClientID := config.RequireEnvVar("SPOTIFY_CLIENT_ID")
@@ -42,20 +46,39 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	songListStore, err := gcp.NewFireStore(gcpProjectId)
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "public/favicon.ico")
+	})
+
 	http.HandleFunc(loginPath, func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "public/login.html")
 	})
+
 	http.HandleFunc(playerPath, func(w http.ResponseWriter, r *http.Request) {
 		if checkBajidSpotifyCookie(w, r) {
 			http.ServeFile(w, r, "public/player.html")
 		}
 	})
-	http.HandleFunc("/auth/spotify/login", handleOauthLogin(oauthConf))
-	http.HandleFunc("/auth/spotify/callback", handleOauthCallback(oauthConf))
+
+	r.HandleFunc("/auth/spotify/login", handleOauthLogin(oauthConf))
+
+	r.HandleFunc("/auth/spotify/callback", handleOauthCallback(oauthConf))
+
 	http.Handle("/css/", http.FileServer(http.Dir("./public")))
+
 	http.Handle("/js/", http.FileServer(http.Dir("./public")))
 
-	http.HandleFunc("/", handleWelcome)
+	r.HandleFunc("/song_list/{userId}", handleSongList(songListStore)).Methods("GET")
+
+	r.HandleFunc("/", handleWelcome).Methods("GET")
+
+	http.Handle("/", r)
 
 	port := config.RequireEnvVar("PORT")
 
@@ -64,6 +87,22 @@ func main() {
 	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 
 	log.Fatal(err)
+}
+
+func handleSongList(store bajid.SongListStore) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		userId := bajid.UserId(vars["userId"])
+		songList, err := store.Read(userId)
+
+		if err != nil {
+			log.Printf("error reading songlist for %s: %s\n", userId, err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		_ = json.NewEncoder(w).Encode(songList)
+	}
 }
 
 func handleWelcome(w http.ResponseWriter, r *http.Request) {
