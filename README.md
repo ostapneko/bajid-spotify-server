@@ -1,5 +1,9 @@
 # bajid-spotify-server
 
+A simple configurable Juke-Box to teach my toddler the alphabet listening to his favorite tunes!
+
+![Screenshot](screenshot.jpg)
+
 # Configuration
 
 The application is built to run within GCP Cloud Run and is backed by Firestore.
