@@ -6,8 +6,15 @@ import {getSongList} from "./modules/bajid.js";
 const e = React.createElement;
 
 (async function () {
-    await initSpotify();
-    const player = await createPlayer();
+    let player;
+    try {
+        await initSpotify();
+        player = await createPlayer();
+    } catch (e) {
+        if (e === 'Authentication failed') {
+            window.location.replace('/login');
+        }
+    }
     const userId = await getUserID();
     console.log("userId", userId);
     const songList = await getSongList(userId);
