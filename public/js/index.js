@@ -37,15 +37,20 @@ function App({letterToTrack, player}) {
         track: letterToTrack['a']
     });
 
+    let isChangingTrack = false;
+
     player.addListener('player_state_changed', playerState => {
-        console.log('player state change', playerState)
         let trackIsFinished = playerState.paused && (playerState.position > 0)
 
         if (trackIsFinished) {
-            const randomCharCode = Math.floor(Math.random() * (123 - 97) + 97);
-            let letter = String.fromCharCode(randomCharCode);
-            const track = letterToTrack[letter];
-            setState({letter, track});
+            console.log('Track is finished, playing the next one...')
+            if (!isChangingTrack) {
+                isChangingTrack = true
+                const randomCharCode = Math.floor(Math.random() * (123 - 97) + 97);
+                let letter = String.fromCharCode(randomCharCode);
+                const track = letterToTrack[letter];
+                setState({letter, track});
+            }
         }
     });
 
@@ -59,9 +64,9 @@ function App({letterToTrack, player}) {
     };
 
     React.useEffect(() => {
-        console.log(state);
         if (state.track) {
             play({spotify_uri: state.track.uri, playerInstance: player});
+            isChangingTrack = false
         }
     }, [state.track && state.track.uri]);
 
