@@ -22,7 +22,7 @@ func NewOauthConf(clientID string, clientSecret string, redirectURI string) *oau
 			TokenURL: tokenURL,
 		},
 		RedirectURL: redirectURI,
-		Scopes:      []string{"user-read-private", "user-read-email", "streaming"},
+		Scopes:      []string{"user-read-private", "user-read-email", "streaming", "user-modify-playback-state"},
 	}
 }
 

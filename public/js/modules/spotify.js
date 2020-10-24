@@ -31,10 +31,16 @@ export const getTracks = async (uris) => {
     return doc.tracks;
 }
 
+export const setRepeatTrack = async () => {
+    await fetch('https://api.spotify.com/v1/me/player/repeat?state=track', {method: 'PUT', headers: auth_headers});
+}
+
+
 export const createPlayer = async () => {
     return new Promise((resolve, reject) => {
         const player = new Spotify.Player({
             name: 'Bajid Box Player',
+
             getOAuthToken: cb => {
                 cb(token);
             }
