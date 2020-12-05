@@ -35,6 +35,7 @@ export const createPlayer = async () => {
     return new Promise((resolve, reject) => {
         const player = new Spotify.Player({
             name: 'Bajid Box Player',
+
             getOAuthToken: cb => {
                 cb(token);
             }
