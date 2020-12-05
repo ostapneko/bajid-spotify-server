@@ -7,7 +7,6 @@ import {
     getUserID,
     initSpotify,
     play,
-    setRepeatTrack
 } from "./modules/spotify.js";
 import {getSongList} from "./modules/bajid.js";
 
@@ -18,7 +17,6 @@ const e = React.createElement;
     try {
         await initSpotify();
         player = await createPlayer();
-        await setRepeatTrack();
     } catch (e) {
         if (e === 'Authentication failed') {
             window.location.replace('/login');
