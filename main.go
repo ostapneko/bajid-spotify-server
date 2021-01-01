@@ -28,23 +28,10 @@ func main() {
 
 	gcpProjectId := config.RequireEnvVar("GCP_PROJECT_ID")
 	spotifyClientID := config.RequireEnvVar("SPOTIFY_CLIENT_ID")
+	spotifyClientSecret := config.RequireEnvVar("SPOTIFY_CLIENT_SECRET")
 	authorizedRedirectURI := config.RequireEnvVar("SPOTIFY_REDIRECT_URI")
 
-	sm, err := gcp.NewSecretManager(gcpProjectId)
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	ctx := context.Background()
-
-	spotifyClientSecret, err := sm.GetSecret(ctx, "SPOTIFY_CLIENT_SECRET")
-
 	oauthConf := spotify.NewOauthConf(spotifyClientID, spotifyClientSecret, authorizedRedirectURI)
-
-	if err != nil {
-		log.Fatalln(err)
-	}
 
 	songListStore, err := gcp.NewFireStore(gcpProjectId)
 
