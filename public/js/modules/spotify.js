@@ -58,7 +58,7 @@ export const createPlayer = async () => {
         // Ready
         player.addListener('ready', ({device_id}) => {
             console.log('Ready with Device ID', device_id);
-            resolve(player)
+            resolve({player, device_id})
         });
 
         // Not Ready
@@ -76,12 +76,12 @@ export const play = ({
                          playerInstance: {
                              _options: {
                                  getOAuthToken,
-                                 id
                              }
-                         }
+                         },
+                         device_id,
                      }) => {
     getOAuthToken(access_token => {
-        fetch(`https://api.spotify.com/v1/me/player/play?device_id=${id}`, {
+        fetch(`https://api.spotify.com/v1/me/player/play?device_id=${device_id}`, {
             method: 'PUT',
             body: JSON.stringify({uris: [spotify_uri]}),
             headers: auth_headers,

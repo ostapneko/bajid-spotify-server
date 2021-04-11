@@ -14,12 +14,17 @@ const e = React.createElement;
 
 (async function () {
     let player;
+    let device_id;
     try {
         await initSpotify();
-        player = await createPlayer();
+        let res = await createPlayer();
+        player = res.player;
+        device_id = res.device_id;
     } catch (e) {
         if (e === 'Authentication failed') {
             window.location.replace('/login');
+        } else {
+            throw e
         }
     }
     const userId = await getUserID();
@@ -35,10 +40,10 @@ const e = React.createElement;
 
     const app = document.querySelector('#app');
 
-    ReactDOM.render(e(App, {letterToTrack, player}, null), app)
+    ReactDOM.render(e(App, {letterToTrack, player, device_id}, null), app)
 })()
 
-function App({letterToTrack, player}) {
+function App({letterToTrack, player, device_id}) {
     const [state, setState] = React.useState({
         letter: 'a',
         track: letterToTrack['a']
@@ -55,7 +60,7 @@ function App({letterToTrack, player}) {
 
     React.useEffect(() => {
         if (state.track) {
-            play({spotify_uri: state.track.uri, playerInstance: player});
+            play({spotify_uri: state.track.uri, playerInstance: player, device_id});
         }
     }, [state.track && state.track.uri]);
 
